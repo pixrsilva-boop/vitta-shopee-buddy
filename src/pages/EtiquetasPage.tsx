@@ -95,7 +95,7 @@ function fmtCep(s: string) {
   return s.substring(0,5) + '-' + s.substring(5);
 }
 
-// O PARSER 100% NATURAL (Sem coordenadas!)
+// O PARSER 100% NATURAL (O que lê linha por linha como um humano)
 function parse(lines: string[]): LabelData {
   const fullText = lines.join(' ');
 
@@ -106,7 +106,7 @@ function parse(lines: string[]): LabelData {
   const idMatch = fullText.match(/ID pedido[:\s]*([A-Z0-9]+)/i);
   const idPedido = idMatch ? idMatch[1] : '';
 
-  // DESTINATÁRIO (Trava ativada para garantir apenas o endereço)
+  // DESTINATÁRIO
   const iDest = lines.findIndex(l => l.toUpperCase() === 'DESTINATÁRIO' || l.toUpperCase() === 'DESTINATARIO');
   let destNome = 'Nome não encontrado';
   let destEnd = '';
@@ -285,7 +285,6 @@ export default function EtiquetasPage() {
         const tc = await page.getTextContent();
         
         let acc = '';
-        // ZERO COORDENADAS: Leitura puramente por quebra de linha do PDF (hasEOL)
         tc.items.forEach((item: any) => {
             if(item.hasEOL){
                 rawLines.push((acc + item.str).trim());
@@ -297,7 +296,7 @@ export default function EtiquetasPage() {
         if(acc.trim()) rawLines.push(acc.trim());
       }
 
-      // O PURIFICADOR DE SALSICHÃO: Corta avisos legais
+      // PURIFICADOR DE SALSICHÃO: Corta avisos legais do rodapé
       const cleanLines = rawLines.filter(l => {
           const up = l.toUpperCase();
           return !(
@@ -366,8 +365,7 @@ export default function EtiquetasPage() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold tracking-tight">Etiquetas Shopee</h1>
-            {/* O subtítulo mudou para termos a certeza que o sistema atualizou */}
-            <p className="text-xs text-muted-foreground font-semibold text-green-500">Leitura Natural (Sem Coordenadas) V3</p>
+            <p className="text-xs font-bold text-green-500">Leitura Natural Definitiva V4</p>
           </div>
         </div>
 
