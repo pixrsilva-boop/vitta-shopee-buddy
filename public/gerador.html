@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Etiquetas Shopee - Na Hora</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+/* TEMA ORIGINAL INTACTO */
+:root{
+  --bg:#0d0f14;--panel:#161921;--card:#1c2030;--border:#252b3b;
+  --text:#dde2f0;--muted:#4d5a78;--accent:#f97316;--green:#22c55e;--red:#ef4444;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+#ov{position:fixed;inset:0;background:rgba(13,15,20,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:0.3s}
+#ov.gone{opacity:0;pointer-events:none}
+.ov-s{width:36px;height:36px;border-radius:50%;border:3px solid #2a3050;border-top-color:var(--accent);animation:spin .7s linear infinite}
+.ov-t{font-size:13px;color:var(--muted)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.page{max-width:1080px;margin:0 auto;padding:24px 18px 80px}
+.grid{display:grid;grid-template-columns:296px 1fr;gap:20px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+
+.hdr{display:flex;align-items:center;gap:12px;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.hdr-i{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(249,115,22,.3)}
+.hdr-t{font-size:18px;font-weight:700}
+.hdr-s{font-size:11px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.clbl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.clbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.drop{border:2px dashed var(--border);border-radius:8px;padding:22px 12px;text-align:center;cursor:pointer;transition:all .18s;background:var(--panel)}
+.drop:hover,.drop.ov2{border-color:var(--accent);background:rgba(249,115,22,.04)}
+.drop.ok{border-style:solid;border-color:var(--green);background:rgba(34,197,94,.04)}
+.drop.er{border-style:solid;border-color:var(--red);background:rgba(239,68,68,.04)}
+.drop input{display:none}
+
+.sb{display:none;padding:8px 10px;border-radius:7px;font-size:11px;align-items:center;gap:7px;margin-bottom:10px;border:1px solid transparent;font-family:monospace}
+.sb.on{display:flex}
+.sb.r{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);color:#93c5fd}
+.sb.g{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.25);color:#fdba74}
+.sb.d{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);color:#86efac}
+.sb.e{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#fca5a5}
+.sp{width:11px;height:11px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .65s linear infinite;flex-shrink:0}
+
+.btns{display:flex;gap:8px}
+.btn{flex:1;padding:11px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.bp{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;box-shadow:0 4px 14px rgba(249,115,22,.28)}
+.bp:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 18px rgba(249,115,22,.4)}
+.bp:disabled{background:var(--border);color:var(--muted);box-shadow:none;cursor:not-allowed;transform:none}
+.bs{background:var(--panel);color:var(--text);border:1px solid var(--border)}
+.bs:hover{background:var(--border)}
+
+.fmts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.fb{border:1.5px solid var(--border);border-radius:8px;background:var(--panel);cursor:pointer;padding:9px 6px;text-align:center;font-family:inherit;transition:all .15s}
+.fb .ft{font-size:13px;font-weight:600;display:block;color:var(--text)}
+.fb .fs{font-size:10px;display:block;color:var(--muted);margin-top:2px}
+.fb.on{border-color:var(--accent);background:rgba(249,115,22,.08)}
+.fb.on .ft{color:var(--accent)}
+
+.flds{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.fld{background:var(--panel);border-radius:6px;padding:6px 8px}
+.fld.w2{grid-column:1/-1}
+.fl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.fv{font-size:11px;font-weight:600;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.pt th{background:rgba(249,115,22,.12);color:var(--accent);padding:4px 6px;text-align:left;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+.pt td{padding:4px 6px;border-bottom:1px solid var(--border)}
+.pt tr:last-child td{border-bottom:none}
+
+.ps{display:flex;align-items:flex-start;justify-content:center;min-height:160px;padding:18px;border-radius:10px;border:1px solid var(--border);background:repeating-conic-gradient(rgba(255,255,255,.02) 0% 25%,transparent 0% 50%) 0 0/16px 16px;overflow-y:auto}
+.pe{text-align:center;color:var(--muted);padding-top:24px}
+.pei{font-size:34px;margin-bottom:8px}
+
+/* CSS DA ETIQUETA INTACTO */
+#etq{
+  width:283px; background:#fff; border:1.5px solid #000; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#000; font-size:8px; flex-shrink:0;
+}
+.e-hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 6px 4px;border-bottom:1px solid #000}
+.e-logo{display:flex;align-items:flex-start;gap:5px}
+.e-sico{width:22px;height:22px;border:2px solid #000;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#000;flex-shrink:0}
+.e-sname{font-size:17px;font-weight:900;line-height:1}
+.e-idlbl{font-size:5.5px;color:#777;margin-top:2px}
+.e-idval{font-size:7.5px;font-weight:700;font-family:monospace}
+
+.e-rastr{padding:4px 6px 0;border-bottom:1px solid #000}
+.e-contrato{font-size:6px;color:#777}
+.e-modal{font-size:10px;font-weight:700;margin:2px 0 1px}
+.e-cod{font-size:12px;font-weight:900;font-family:monospace;letter-spacing:.3px}
+.e-bc-main svg{display:block;width:100% !important;height:auto}
+
+.e-receb{padding:3px 6px;border-bottom:1px solid #ccc;font-size:6px;color:#555;display:flex;flex-direction:column;gap:3px}
+.e-row{display:flex;align-items:flex-end;gap:5px}
+.e-ul{flex:1;border-bottom:1px solid #000;height:11px}
+
+.e-tag{padding:3px 6px;background:#000;color:#fff;font-size:9px;font-weight:700}
+.e-dest{padding:5px 6px 3px;border-bottom:1px solid #ccc}
+.e-dnome{font-size:10.5px;font-weight:700;line-height:1.2}
+.e-dend{font-size:8px;margin-top:2px}
+.e-dbairro{font-size:7.5px;color:#333}
+.e-dciduf{display:flex;justify-content:space-between;align-items:baseline;margin-top:3px}
+.e-dcid{font-size:9px;font-weight:700}
+.e-dcep{font-size:9px;font-weight:700;font-family:monospace}
+.e-duf{font-size:7.5px;margin-top:1px;color:#333}
+
+.e-bccep{padding:3px 6px 2px;border-bottom:1px solid #000}
+.e-bccep svg{display:block;max-width:155px}
+
+.e-rem{padding:5px 6px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #000}
+.e-rnome{font-size:9.5px;font-weight:700}
+.e-rend{font-size:7.5px;margin-top:2px}
+.e-rcid{font-size:7.5px}
+.e-rcep{font-size:7.5px;margin-top:1px}
+
+.e-btit{text-align:center;font-size:7px;font-weight:700;padding:3px 0 2px;border-bottom:1px solid #ccc}
+.e-btbl{width:100%;border-collapse:collapse}
+.e-bth{background:#000;color:#fff;padding:2.5px 3px;font-size:5.5px;text-align:left;font-weight:700}
+.e-btd{padding:3px 3px;font-size:6.5px;border-bottom:1px solid #ebebeb;vertical-align:top;line-height:1.35}
+.e-bsub{font-size:5.5px;color:#666;display:block;margin-top:1px}
+.e-btot{display:flex;justify-content:space-between;background:#e8e8e8;padding:4px 6px;font-size:8px;font-weight:700}
+
+.e-assin{display:flex;justify-content:space-between;padding:5px 6px 4px;font-size:5.5px;color:#666;border-top:1px solid #ccc}
+.e-aul{border-bottom:1px solid #000;width:110px;height:13px;margin-bottom:2px}
+.e-dul{border-bottom:1px solid #000;width:75px;height:13px;margin-bottom:2px;margin-left:auto}
+
+.e-rod{text-align:center;font-size:4.5px;color:#aaa;padding:3px 6px 5px}
+</style>
+</head>
+<body>
+
+<div id="ov"><div class="ov-s"></div><div class="ov-t" id="ovt">Iniciando sistema...</div></div>
+
+<div class="page">
+  <div class="hdr">
+    <div class="hdr-i">🏷️</div>
+    <div>
+      <div class="hdr-t">Etiquetas Shopee</div>
+      <div class="hdr-s">Extração Natural 100% Precisa</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="clbl">PDF da Shopee</div>
+        <div class="drop" id="dz" onclick="document.getElementById('fi').click()"
+             ondragover="doDrag(event)" ondragleave="document.getElementById('dz').classList.remove('ov2')" ondrop="onDrop(event)">
+          <input type="file" id="fi" accept=".pdf" onchange="onFile(event)">
+          <div id="dI" style="font-size:24px;margin-bottom:6px">📦</div>
+          <div id="dL" style="font-size:13px;font-weight:600;margin-bottom:3px">Arraste o PDF aqui</div>
+          <div id="dH" style="font-size:11px;color:var(--muted)">clique ou arraste · .pdf</div>
+          <div id="dF" style="font-size:11px;color:var(--green);font-family:monospace;margin-top:4px"></div>
+          <div id="dE" style="font-size:11px;color:var(--red);margin-top:4px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="clbl">Formato</div>
+        <div class="fmts">
+          <button class="fb on" id="bT" onclick="setFmt('t')"><span class="ft">🖨️ Térmica</span><span class="fs">100×150 mm</span></button>
+          <button class="fb"    id="bA" onclick="setFmt('a')"><span class="ft">📄 A4</span><span class="fs">210×297 mm</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="clbl">Exportar</div>
+        <div class="sb" id="sb"><div class="sp" id="sp"></div><span id="sm"></span></div>
+        <div class="btns">
+          <button class="btn bp" id="btnG" onclick="gerar()" disabled>⚡ Gerar PDF</button>
+          <button class="btn bs" id="btnN" onclick="nova()" style="display:none;flex:0 0 auto;padding:11px 13px">↺</button>
+        </div>
+      </div>
+
+      <div class="card" id="cD" style="display:none">
+        <div class="clbl">Dados Extraídos</div>
+        <div class="flds">
+          <div class="fld"><div class="fl">Rastreio</div><div class="fv" id="vR">—</div></div>
+          <div class="fld"><div class="fl">Modal</div><div class="fv" id="vM">—</div></div>
+          <div class="fld"><div class="fl">ID Pedido</div><div class="fv" id="vI">—</div></div>
+          <div class="fld"><div class="fl">CEP Dest.</div><div class="fv" id="vC">—</div></div>
+          <div class="fld w2"><div class="fl">Destinatário</div><div class="fv" id="vD">—</div></div>
+          <div class="fld w2"><div class="fl">Remetente</div><div class="fv" id="vRm">—</div></div>
+        </div>
+        <table class="pt">
+          <thead><tr><th>#</th><th>Descrição</th><th>Var.</th><th>Qtd</th><th>Valor</th></tr></thead>
+          <tbody id="ptb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="clbl">Preview · Etiqueta</div>
+        <div class="ps" id="ps">
+          <div class="pe" id="pe"><div class="pei">🏷️</div><div style="font-size:12px">Carregue um PDF</div></div>
+          <div id="etq-w" style="display:none;box-shadow:0 12px 48px rgba(0,0,0,.7)">
+            <div id="etq"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    document.getElementById('ov').classList.add('gone');
+  } catch(e) { console.error(e); }
+});
+
+const A={fmt:'t',data:null,busy:false};
+const $=id=>document.getElementById(id);
+const sh=(id,v=true)=>$(id).style.display=v?'':'none';
+
+function setSt(msg,type){
+  if(!msg){$('sb').className='sb';return}
+  $('sb').className='sb on '+type;$('sm').textContent=msg;
+  $('sp').style.display=(type==='r'||type==='g')?'':'none';
+}
+
+function doDrag(e){e.preventDefault();$('dz').classList.add('ov2')}
+function onDrop(e){e.preventDefault();$('dz').classList.remove('ov2');const f=e.dataTransfer.files[0];if(f)handleFile(f)}
+function onFile(e){const f=e.target.files[0];if(f)handleFile(f);e.target.value=''}
+
+function setDrop(s,name='',err=''){
+  $('dz').className='drop'+(s==='ok'?' ok':s==='er'?' er':'');
+  $('dI').textContent=s==='ok'?'✅':s==='er'?'❌':'📦';
+  $('dL').textContent=s==='ok'?'PDF carregado':s==='er'?'Erro':'Arraste o PDF aqui';
+  $('dH').textContent=s==='ok'||s==='er'?'':'clique ou arraste · .pdf';
+  $('dF').textContent=name;$('dE').textContent=err;
+}
+
+function setFmt(f){A.fmt=f;$('bT').classList.toggle('on',f==='t');$('bA').classList.toggle('on',f==='a')}
+
+function nova(){
+  A.data=null;setDrop('idle');sh('cD',false);sh('btnN',false);
+  $('btnG').disabled=true;sh('etq-w',false);sh('pe');setSt(null);
+}
+
+// === LEITURA NATURAL (Evita o Salsichão de Texto) ===
+async function handleFile(file){
+  if(!file.name.toLowerCase().endsWith('.pdf')){setDrop('er','','Envie um .pdf');return}
+  setDrop('ok',file.name);setSt('Lendo PDF…','r');
+  try{
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    
+    let rawLines = []; 
+    
+    for(let i=1;i<=pdf.numPages;i++){
+      const pg=await pdf.getPage(i);
+      const tc=await pg.getTextContent();
+      let acc='';
+      tc.items.forEach(item=>{
+          if(item.hasEOL){
+              rawLines.push((acc+item.str).trim());
+              acc='';
+          } else {
+              acc+=item.str;
+          }
+      });
+      if(acc.trim()) rawLines.push(acc.trim());
+    }
+    
+    // O PURIFICADOR: Remove os avisos legais que estavam a destruir a etiqueta
+    const cleanLines = rawLines.filter(l => {
+        const up = l.toUpperCase();
+        return !(
+            up.includes('IMPORTANTE: INFORMAMOS') ||
+            up.includes('NÃO GUARDA POSSE') ||
+            up.includes('CONTEÚDOS CONTIDOS NESTE') ||
+            up.includes('O A PESSOA IDENTIFICADA') ||
+            up.includes('SÓ SE LIMITA À PUBLICAÇÃO') ||
+            up.includes('RESPONSÁVEL PELO BEM ENVIADO')
+        );
+    });
+
+    A.data = parse(cleanLines);
+    fillUI(A.data);
+    sh('cD');$('btnG').disabled=false;sh('btnN');
+    setSt('✓ Pronto — clique em Gerar PDF','d');
+    buildLabel(A.data);
+  }catch(e){
+    setDrop('er',file.name,'Erro ao processar');
+    setSt('Erro ao ler PDF','e');
+    console.error(e);
+  }
+}
+
+// === NOVO PARSER BLINDADO ===
+function parse(lines){
+  const fullText = lines.join(' ');
+
+  const rastreio=(fullText.match(/\b([A-Z]{2}\d{9}[A-Z]{2})\b/)||[])[1]||'';
+  const contrato=(fullText.match(/Contrato:\s*(\d+)/i)||[])[1]||'';
+  const modal=(fullText.match(/\b(SEDEX|PAC|MINI ENVIOS|SHOPEE XPRESS)\b/i)||["SEDEX"])[0];
+
+  const idMatch = fullText.match(/ID pedido[:\s]*([A-Z0-9]+)/i);
+  const idPedido = idMatch ? idMatch[1] : '';
+
+  // -----------------------------------------------------
+  // DESTINATÁRIO (Trava de segurança ativada)
+  // -----------------------------------------------------
+  const iDest = lines.findIndex(l => l.toUpperCase() === 'DESTINATÁRIO' || l.toUpperCase() === 'DESTINATARIO');
+  let destNome = 'Nome não encontrado';
+  let destEnd = '';
+  let destBairro = '';
+  let destCidade = '';
+  let destUf = '';
+
+  if (iDest !== -1) {
+      let dData = [];
+      for(let j = iDest + 1; j < iDest + 6; j++) {
+          let l = lines[j];
+          if (!l) break;
+          let up = l.toUpperCase();
+          // Trava! Se ler estas palavras, a morada acabou e o código para imediatamente.
+          if (up.includes('DOCUMENTO') || up.includes('REMETENTE') || up.match(/^\d{5}-\d{3}$/) || up.match(/^\d{8}$/)) break;
+          dData.push(l);
+      }
+      if (dData.length > 0) destNome = dData[0];
+      if (dData.length > 1) destEnd = dData[1];
+      if (dData.length === 3) destCidade = dData[2];
+      if (dData.length === 4) { destBairro = dData[2]; destCidade = dData[3]; }
+      if (dData.length >= 5) { destBairro = dData[2]; destCidade = dData[3]; destUf = dData[4]; }
+  }
+
+  // -----------------------------------------------------
+  // REMETENTE
+  // -----------------------------------------------------
+  let remNome = 'VITTA@STORE';
+  let remEnd = '';
+  const iRem = lines.findIndex(l => l.toUpperCase().includes('REMETENTE'));
+  
+  if (iRem !== -1) {
+      let txt = lines[iRem];
+      if (txt.toUpperCase().includes('REMETENTE:')) {
+          remNome = txt.substring(txt.toUpperCase().indexOf('REMETENTE:') + 10).trim();
+          remEnd = lines[iRem + 1] || '';
+      } else {
+          remNome = lines[iRem + 1] || remNome;
+          remEnd = lines[iRem + 2] || '';
+      }
+  } else {
+      let rIdx = lines.findIndex(l => l.includes('VITTA@STORE') || l.includes('@'));
+      if (rIdx !== -1) {
+          remNome = lines[rIdx];
+          remEnd = lines[rIdx + 1] || '';
+      }
+  }
+
+  if(remNome) remNome = remNome.replace(/NOME:\s*/i, '');
+  if(remEnd) remEnd = remEnd.replace(/ENDEREÇO:\s*/i, '');
+
+  const ceps=[...fullText.matchAll(/\b(\d{8}|\d{5}-\d{3})\b/g)].map(m=>m[1].replace('-',''));
+  let destCep='',remCep='';
+  if (ceps.length > 0) destCep = fmtCep(ceps[0]);
+  if (ceps.length > 1) remCep = fmtCep(ceps[1]);
+
+  const remCidade='Mongaguá';
+  const remUf='São Paulo';
+
+  // -----------------------------------------------------
+  // TABELA DE PRODUTOS
+  // -----------------------------------------------------
+  let totalQtd = 1;
+  let totalVal = "R$ 0,00";
+
+  const tMatch = fullText.match(/Totais\s+(\d+)\s+([\d.,]+[.,]\d{2})/i);
+  if (tMatch) {
+      totalQtd = parseInt(tMatch[1]);
+      totalVal = "R$ " + tMatch[2].replace('.', ',');
+  } else {
+      const valMatch = fullText.match(/R\$\s*([\d.,]+)/);
+      if (valMatch) totalVal = "R$ " + valMatch[1];
+  }
+
+  const prods = [];
+  
+  if (fullText.includes("Nenhum produto extraido") || fullText.includes("Nenhum produto extraído")) {
+      prods.push({ n: '-', desc: 'Nenhum produto extraido', var: '-', qtd: '-', val: '-' });
+  } else {
+      let blocoTabela = "";
+      const tableMatch = fullText.match(/VALOR\b\s*(.+?)\s*(?:Totais\b|Peso Total\b|DECLARAÇÃO\b)/i);
+      
+      if (tableMatch) {
+          blocoTabela = tableMatch[1].replace(/VARIAÇÃO|QTD|CÓDIGO \(SKU\)|Nº|DESCRIÇÃO DO PRODUTO/gi, '').trim();
+
+          const itemRegex = /(?:^|\s)(\d+)\s+(.+?)\s+(\d+)\s+([\d.,]+[.,]\d{2})(?=\s|$|\s\d+\s)/g;
+          let m;
+          let encontrou = false;
+          
+          while ((m = itemRegex.exec(blocoTabela)) !== null) {
+              encontrou = true;
+              let n = m[1];
+              let rawDesc = m[2].trim();
+              let qtd = m[3];
+              let val = m[4];
+              let desc = rawDesc;
+              let vari = "-";
+              
+              const varMatch = rawDesc.match(/(.*?)\s+([A-Za-z0-9À-ÿ/\s-]+,[A-Za-z0-9À-ÿ/\s-]+)$/);
+              if (varMatch) {
+                  desc = varMatch[1].trim();
+                  vari = varMatch[2].trim();
+              } else {
+                  const colorMatch = rawDesc.match(/(.*?)\s+((?:Bege|Preto|Branco|Azul|Verde|Vermelho|Rosa|Cinza|Amarelo|Lilás|Roxo|Laranja|Marrom|Sortido).*?)$/i);
+                  if(colorMatch) {
+                      desc = colorMatch[1].trim();
+                      vari = colorMatch[2].trim();
+                  }
+              }
+              
+              val = val.replace('.', ',');
+              if (!val.includes(',')) val += ',00';
+              if (!val.includes('R$')) val = 'R$ ' + val;
+              
+              prods.push({ n, desc, var: vari, qtd, val });
+          }
+
+          if (!encontrou) {
+              prods.push({ n: '1', desc: blocoTabela.substring(0, 100), var: '-', qtd: totalQtd, val: totalVal });
+          }
+      } else {
+          prods.push({ n: '1', desc: 'Produtos conforme declaração', var: '-', qtd: totalQtd, val: totalVal });
+      }
+  }
+
+  return{rastreio,contrato,idPedido,modal,destNome,destEnd,destBairro,destCidade,destUf,destCep,remNome,remEnd,remCidade,remUf,remCep,prods,totalQtd,totalVal};
+}
+
+function fmtCep(s){
+    if(!s) return '';
+    s = s.replace(/\D/g, '');
+    if(s.length !== 8) return s;
+    return s.substring(0,5) + '-' + s.substring(5);
+}
+
+function fillUI(d){
+  if(document.getElementById('vR')) document.getElementById('vR').textContent=d.rastreio||'—';
+  if(document.getElementById('vM')) document.getElementById('vM').textContent=d.modal||'—';
+  if(document.getElementById('vI')) document.getElementById('vI').textContent=d.idPedido||'—';
+  if(document.getElementById('vC')) document.getElementById('vC').textContent=d.destCep||'—';
+  if(document.getElementById('vD')) document.getElementById('vD').textContent=d.destNome||'—';
+  if(document.getElementById('vRm')) document.getElementById('vRm').textContent=d.remNome||'—';
+  
+  const tb=document.getElementById('ptb');
+  if(tb){
+    tb.innerHTML='';
+    d.prods.forEach(p=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${p.n}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.desc}">${p.desc}</td><td>${p.var}</td><td>${p.qtd}</td><td>${p.val}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+}
+
+function buildLabel(d){
+  const root=document.getElementById('etq');
+  if(!root) return;
+  root.innerHTML='';
+  const mk=(tag,cls,html='')=>{const el=document.createElement(tag);if(cls)el.className=cls;if(html)el.innerHTML=html;return el};
+  const mkSvg=()=>document.createElementNS('http://www.w3.org/2000/svg','svg');
+
+  const hdr=mk('div','e-hdr');
+  hdr.innerHTML=`<div class="e-logo"><div class="e-sico">S</div><div style="margin-left:5px"><div class="e-sname">Shopee</div><div class="e-idlbl">ID pedido:</div><div class="e-idval">${d.idPedido||'—'}</div></div></div>`;
+  const qrTop=document.createElement('canvas');
+  hdr.appendChild(qrTop);root.appendChild(hdr);
+  QRCode.toCanvas(qrTop,d.rastreio||'NOTRACK',{width:52,margin:1,color:{dark:'#000',light:'#fff'}}).catch(()=>{});
+
+  const rDiv=mk('div','e-rastr');
+  rDiv.innerHTML=`<div class="e-contrato">Contrato: ${d.contrato}</div><div class="e-modal">${d.modal}</div><div class="e-cod">${d.rastreio}</div>`;
+  const bcSvg=mkSvg();const bcW=mk('div','e-bc-main');bcW.appendChild(bcSvg);rDiv.appendChild(bcW);root.appendChild(rDiv);
+  try{
+    JsBarcode(bcSvg,d.rastreio||'AD000000000BR',{format:'CODE128',displayValue:true,fontSize:9,height:34,margin:3,lineColor:'#000',background:'#fff',textMargin:2,font:'Courier New,monospace'});
+    bcSvg.setAttribute('width','100%');bcSvg.removeAttribute('height');
+  }catch(e){console.warn(e)}
+
+  const rec=mk('div','e-receb');
+  rec.innerHTML=`<div class="e-row"><span>Recebedor:</span><div class="e-ul"></div></div><div class="e-row"><span>Assinatura:</span><div class="e-ul" style="max-width:70px"></div><span style="margin-left:5px">Documento:</span><div class="e-ul" style="max-width:55px"></div></div>`;
+  root.appendChild(rec);
+
+  root.appendChild(mk('div','e-tag','DESTINATÁRIO'));
+  const dDiv=mk('div','e-dest');
+  dDiv.innerHTML=`<div class="e-dnome">${d.destNome||'—'}</div><div class="e-dend">${d.destEnd||'—'}</div><div class="e-dbairro">${d.destBairro}</div><div class="e-dciduf"><span class="e-dcid">${d.destCidade}</span><span class="e-dcep">${d.destCep}</span></div><div class="e-duf">${d.destUf}</div>`;
+  root.appendChild(dDiv);
+
+  const cepNum=(d.destCep||'00000000').replace(/\D/g,'').padEnd(8,'0').slice(0,8);
+  const bCepW=mk('div','e-bccep');const bCepSvg=mkSvg();bCepW.appendChild(bCepSvg);root.appendChild(bCepW);
+  try{JsBarcode(bCepSvg,cepNum,{format:'CODE128',displayValue:false,height:20,margin:2,lineColor:'#000',background:'#fff'});}catch(e){console.warn(e)}
+
+  root.appendChild(mk('div','e-tag','REMETENTE'));
+  const remRow=mk('div','e-rem');
+  const remTxt=mk('div','');
+  remTxt.innerHTML=`<div class="e-rnome">${d.remNome}</div><div class="e-rend">${d.remEnd}</div><div class="e-rcid">${d.remCidade} — ${d.remUf}</div><div class="e-rcep">CEP: ${d.remCep}</div>`;
+  const qrRem=document.createElement('canvas');
+  remRow.appendChild(remTxt);remRow.appendChild(qrRem);root.appendChild(remRow);
+  QRCode.toCanvas(qrRem,d.rastreio||'NOTRACK',{width:42,margin:1,color:{dark:'#000',light:'#fff'}}).catch(()=>{});
+
+  root.appendChild(mk('div','e-btit','IDENTIFICAÇÃO DOS BENS'));
+  const tbl=document.createElement('table');tbl.className='e-btbl';
+  tbl.innerHTML=`<thead><tr>
+    <th class="e-bth" style="width:5%;text-align:center">#</th>
+    <th class="e-bth" style="width:50%">Descrição do Produto</th>
+    <th class="e-bth" style="width:24%">Variação</th>
+    <th class="e-bth" style="width:8%;text-align:center">Qtd</th>
+    <th class="e-bth" style="width:13%;text-align:right">Valor</th>
+  </tr></thead>`;
+  const tbody=document.createElement('tbody');
+  
+  d.prods.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.style.background=i%2===0?'#f8f8f8':'#fff';
+    tr.innerHTML=`<td class="e-btd" style="text-align:center">${p.n}</td><td class="e-btd" style="white-space: normal;"><strong>${p.desc}</strong></td><td class="e-btd">${p.var}</td><td class="e-btd" style="text-align:center">${p.qtd}</td><td class="e-btd" style="text-align:right;font-weight:700">${p.val}</td>`;
+    tbody.appendChild(tr);
+  });
+  
+  tbl.appendChild(tbody);root.appendChild(tbl);
+  root.appendChild(mk('div','e-btot',`<span>Total (${Math.max(d.totalQtd, 1)} itens)</span><span>${d.totalVal}</span>`));
+
+  const assin=mk('div','e-assin');
+  assin.innerHTML=`<div><div class="e-aul"></div><span>Assinatura do Remetente/Declarante</span></div><div style="text-align:right"><div class="e-dul"></div><span>Data: ___/___/______</span></div>`;
+  root.appendChild(assin);
+
+  root.appendChild(mk('div','e-rod','Shopee não é proprietário nem responsável pelos bens entregues (art.261 CP).'));
+
+  sh('etq-w');sh('pe',false);
+}
+
+async function gerar(){
+  if(!A.data||A.busy)return;
+  A.busy=true;document.getElementById('btnG').disabled=true;
+  setSt('Aguardando renderização…','g');
+  try{
+    await new Promise(r=>setTimeout(r,700));
+    setSt('Gerando imagem…','g');
+    const canvas=await html2canvas(document.getElementById('etq'),{scale:4,useCORS:true,backgroundColor:'#fff',logging:false,imageTimeout:0});
+    const img=canvas.toDataURL('image/png');
+    const {jsPDF}=window.jspdf;
+    const W=100,H=parseFloat(((canvas.height/canvas.width)*W).toFixed(1));
+    let pdf;
+    if(A.fmt==='a'){
+      pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+      pdf.addImage(img,'PNG',(210-W)/2,(297-H)/2,W,H);
+    }else{
+      pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[W,Math.max(H,100)]});
+      pdf.addImage(img,'PNG',0,0,W,H);
+    }
+    const fname=`etiqueta_${A.data.rastreio||'shopee'}_${A.fmt==='a'?'A4':'termica'}.pdf`;
+    pdf.save(fname);
+    setSt('✓ '+fname+' baixado!','d');
+  }catch(e){setSt('Erro: '+e.message,'e');console.error(e)}
+  A.busy=false;document.getElementById('btnG').disabled=false;
+}
+</script>
+</body>
+</html>
