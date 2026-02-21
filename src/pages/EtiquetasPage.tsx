@@ -95,7 +95,7 @@ function fmtCep(s: string) {
   return s.substring(0,5) + '-' + s.substring(5);
 }
 
-// PARSER HÍBRIDO (Sem salsichão de texto e ignorando avisos)
+// O PARSER 100% NATURAL (Sem coordenadas!)
 function parse(lines: string[]): LabelData {
   const fullText = lines.join(' ');
 
@@ -106,7 +106,7 @@ function parse(lines: string[]): LabelData {
   const idMatch = fullText.match(/ID pedido[:\s]*([A-Z0-9]+)/i);
   const idPedido = idMatch ? idMatch[1] : '';
 
-  // DESTINATÁRIO (Trava ativada)
+  // DESTINATÁRIO (Trava ativada para garantir apenas o endereço)
   const iDest = lines.findIndex(l => l.toUpperCase() === 'DESTINATÁRIO' || l.toUpperCase() === 'DESTINATARIO');
   let destNome = 'Nome não encontrado';
   let destEnd = '';
@@ -284,30 +284,17 @@ export default function EtiquetasPage() {
         const page = await pdf.getPage(i);
         const tc = await page.getTextContent();
         
-        let pageItems = tc.items.map((item: any) => ({
-            str: item.str.trim(),
-            x: item.transform[4],
-            y: item.transform[5]  
-        })).filter((item: any) => item.str.length > 0);
-
-        pageItems.sort((a, b) => {
-            if (Math.abs(b.y - a.y) > 4) return b.y - a.y; 
-            return a.x - b.x; 
-        });
-
-        let currentLine: string[] = [];
-        let currentY = pageItems[0] ? pageItems[0].y : 0;
-
-        pageItems.forEach((item) => {
-            if (Math.abs(currentY - item.y) > 4) {
-                rawLines.push(currentLine.join(' '));
-                currentLine = [item.str];
-                currentY = item.y;
+        let acc = '';
+        // ZERO COORDENADAS: Leitura puramente por quebra de linha do PDF (hasEOL)
+        tc.items.forEach((item: any) => {
+            if(item.hasEOL){
+                rawLines.push((acc + item.str).trim());
+                acc = '';
             } else {
-                currentLine.push(item.str);
+                acc += item.str;
             }
         });
-        if(currentLine.length > 0) rawLines.push(currentLine.join(' '));
+        if(acc.trim()) rawLines.push(acc.trim());
       }
 
       // O PURIFICADOR DE SALSICHÃO: Corta avisos legais
@@ -379,7 +366,8 @@ export default function EtiquetasPage() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold tracking-tight">Etiquetas Shopee</h1>
-            <p className="text-xs text-muted-foreground">Extração Inteligente Atualizada V2</p>
+            {/* O subtítulo mudou para termos a certeza que o sistema atualizou */}
+            <p className="text-xs text-muted-foreground font-semibold text-green-500">Leitura Natural (Sem Coordenadas) V3</p>
           </div>
         </div>
 
